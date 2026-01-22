@@ -73,6 +73,33 @@
             padding: 20px;
             border-radius: 10px;
         }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 177.78%; /* 9:16 Aspect Ratio for vertical video */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin-top: 15px;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .video-wrapper {
+                padding-bottom: 56.25%; /* 16:9 Aspect Ratio for desktop */
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
         
         .wishes-section {
             background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
@@ -137,7 +164,9 @@
         <h2>🎥 Special Moment for You</h2>
         <div class="video-container">
             <h3>🎬 A special memory just for you</h3>
-            <iframe width="100%" height="400" src="https://www.youtube.com/embed/dtKVzsvd8ME" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 10px; margin-top: 15px;"></iframe>
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/dtKVzsvd8ME" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
         </div>
         
         <div class="wishes-section">
