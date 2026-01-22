@@ -10,146 +10,105 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            color: #333;
         }
-
+        
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-
+        
         h1 {
             text-align: center;
             color: #764ba2;
-            font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 2.5em;
         }
-
+        
         .date {
             text-align: center;
             color: #667eea;
-            font-size: 1.3em;
-            margin-bottom: 40px;
-        }
-
-        h2 {
-            color: #764ba2;
-            margin: 30px 0 20px;
-            font-size: 1.8em;
-        }
-
-        .memory-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            padding: 30px;
+            font-size: 1.2em;
             margin-bottom: 30px;
         }
-
-        .memory-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
             margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
-        .memory-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .memory-card h3 {
+        
+        h3 {
             color: #667eea;
+            margin-top: 20px;
             margin-bottom: 10px;
-            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-
-        .memory-card p {
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .special-moment {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
-            text-align: center;
-        }
-
-        .video-container {
-            position: relative;
-            padding-bottom: 177.78%;
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            border-radius: 12px;
-            margin: 20px auto;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            background: #000;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .wishes-section {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .wishes-section p {
-            color: #555;
+        
+        p {
             line-height: 1.8;
-            font-size: 1.1em;
+            color: #555;
             margin-bottom: 15px;
         }
-
+        
+        .video-container {
+            margin: 20px 0;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .wishes-section {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .wishes-section p {
+            color: #2d3436;
+        }
+        
+        .signature {
+            text-align: right;
+            margin-top: 20px;
+            font-style: italic;
+            color: #2d3436;
+        }
+        
         .footer {
             text-align: center;
             margin-top: 30px;
             color: #764ba2;
-            font-style: italic;
+            font-weight: bold;
         }
 
-        .emoji {
-            font-size: 1.5em;
-            margin: 0 5px;
+        .milk-memory {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            border-left: 5px solid #667eea;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-            
-            h2 {
-                font-size: 1.5em;
-            }
+        .milk-memory p {
+            color: #2d3436;
         }
     </style>
 </head>
@@ -157,106 +116,41 @@
     <div class="container">
         <h1>Our Memories, Nitya</h1>
         <div class="date">January 21st 💕</div>
+        
+        <h2>✨ Beautiful Memories</h2>
+        
+        <h3>💫 Cherished Moments</h3>
+        <p>Every conversation, every laugh, every moment we shared together</p>
+        
+        <h3>🌟 Special Times</h3>
+        <p>The memories that made ordinary days feel extraordinary</p>
+        
+        <h3>💝 Grateful Heart</h3>
+        <p>Thank you for all the beautiful memories we created</p>
 
-        <h2><span class="emoji">✨</span> Beautiful Memories</h2>
-        <div class="memory-section">
-            <div class="memory-card">
-                <h3><span class="emoji">💫</span> Cherished Moments</h3>
-                <p>Every conversation, every laugh, every moment we shared together</p>
-            </div>
-
-            <div class="memory-card">
-                <h3><span class="emoji">🌟</span> Special Times</h3>
-                <p>The memories that made ordinary days feel extraordinary</p>
-            </div>
-
-            <div class="memory-card">
-                <h3><span class="emoji">💝</span> Grateful Heart</h3>
-                <p>Thank you for all the beautiful memories we created</p>
-            </div>
+        <div class="milk-memory">
+            <h3>🥛 Sweet Buffalo Milk Memory</h3>
+            <p>I received buffalo 1/4 litre milk and it brought me health and beautiful memories. Each sip reminded me of warmth, care, and the simple joys we share.</p>
+            <p>I want buffalo milk 1 litre to have healthy energy, and I am expecting to get it soon - full of memories, full of love, and full of the goodness we both cherish together.</p>
         </div>
-
-        <h2><span class="emoji">🎥</span> Special Moment for You</h2>
-        <div class="special-moment">
-            <h3><span class="emoji">🎬</span> A special memory just for you</h3>
-            <div class="video-container">
-                <iframe 
-                    src="https://www.youtube.com/embed/dtKVzsvd8ME" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            </div>
+        
+        <h2>🎥 Special Moment for You</h2>
+        <div class="video-container">
+            <h3>🎬 A special memory just for you</h3>
+            <iframe width="100%" height="400" src="https://www.youtube.com/embed/dtKVzsvd8ME" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 10px; margin-top: 15px;"></iframe>
         </div>
-
-        <h2><span class="emoji">🎉</span> Special Wishes</h2>
+        
         <div class="wishes-section">
+            <h2>🎉 Special Wishes</h2>
             <p>On this special day, I wish you all the happiness in the world.</p>
             <p>May your path be filled with success, joy, and beautiful new beginnings.</p>
             <p>Thank you for the memories we created together.</p>
             <p>You deserve all the wonderful things life has to offer.</p>
             <p><strong>Happy Memories Day, Nitya! 🎊</strong></p>
-            <p>With warm wishes 💝</p>
+            <div class="signature">With warm wishes 💝</div>
         </div>
-
-        <div class="footer">
-            Made with love for Nitya ❤️
-        </div>
+        
+        <div class="footer">Made with love for Nitya ❤️</div>
     </div>
-
-    <script>
-        // Disable right-click
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-        // Disable common screenshot shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Prevent PrtScn, Win+Shift+S, Cmd+Shift+4, etc.
-            if (e.key === 'PrintScreen' || 
-                (e.shiftKey && e.metaKey && e.key === '4') ||
-                (e.shiftKey && e.metaKey && e.key === '3') ||
-                (e.shiftKey && e.key === 'S' && (e.ctrlKey || e.metaKey))) {
-                e.preventDefault();
-                alert('Screenshots are disabled on this page');
-                return false;
-            }
-            
-            // Disable F12, Ctrl+Shift+I, Ctrl+U
-            if (e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-                (e.ctrlKey && e.key === 'u')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Disable text selection
-        document.onselectstart = () => false;
-
-        // Add watermark overlay for additional protection
-        const watermark = document.createElement('div');
-        watermark.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 100px,
-                rgba(118, 75, 162, 0.02) 100px,
-                rgba(118, 75, 162, 0.02) 200px
-            );
-        `;
-        document.body.appendChild(watermark);
-
-        // Detect screenshot attempts via visibility API
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('Page visibility changed - potential screenshot attempt');
-            }
-        });
-    </script>
 </body>
 </html>
