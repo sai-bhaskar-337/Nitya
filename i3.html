@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="screenshot" content="disabled">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://www.youtube.com https://cdnjs.cloudflare.com; frame-ancestors 'none';">
     <title>Our Memories, Nitya</title>
     <style>
         * {
@@ -44,6 +48,57 @@
             background: transparent;
             z-index: 9999;
             pointer-events: none;
+            -webkit-backdrop-filter: blur(0px);
+            backdrop-filter: blur(0px);
+            transition: backdrop-filter 0.1s;
+        }
+
+        body.screenshot-detected::before {
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .screenshot-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .screenshot-overlay.active {
+            display: flex;
+        }
+        
+        .secure-content {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: relative;
+        }
+
+        .secure-content::after {
+            content: attr(data-watermark);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 3em;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            z-index: 1;
+            white-space: nowrap;
         }
         
         .container {
@@ -51,6 +106,12 @@
             min-height: 100vh;
             background: white;
             padding: 20px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: relative;
+            z-index: 2;
         }
         
         h1 {
@@ -321,47 +382,162 @@
     </style>
 </head>
 <body>
+    <div class="screenshot-overlay" id="screenshotOverlay">
+        🚫 Screenshot Blocked<br>
+        <small style="font-size: 0.6em; margin-top: 10px; display: block;">This content is protected</small>
+    </div>
+    
     <script>
-        // Disable right-click context menu
+        let isBlurred = false;
+        let blurTimeout;
+        let lastActivity = Date.now();
+
+        // Create dynamic watermark with timestamp
+        function createWatermark() {
+            const now = new Date();
+            return `PRIVATE - ${now.toLocaleString()}`;
+        }
+
+        // Apply watermark
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            if (container) {
+                container.classList.add('secure-content');
+                container.setAttribute('data-watermark', createWatermark());
+                
+                // Update watermark every second
+                setInterval(function() {
+                    container.setAttribute('data-watermark', createWatermark());
+                }, 1000);
+            }
+        });
+
+        // Detect visibility change (app switching - common for screenshots)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // User switched away - potential screenshot
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                isBlurred = true;
+                
+                console.log('⚠️ Screenshot attempt detected at:', new Date().toLocaleString());
+            } else {
+                // User came back
+                clearTimeout(blurTimeout);
+                blurTimeout = setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                    isBlurred = false;
+                }, 500);
+            }
+        });
+
+        // Detect page blur (iOS Safari screenshot detection)
+        window.addEventListener('blur', function() {
+            document.body.classList.add('screenshot-detected');
+            document.getElementById('screenshotOverlay').classList.add('active');
+            
+            setTimeout(function() {
+                if (document.hasFocus()) {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }
+            }, 300);
+        });
+
+        // Detect focus return
+        window.addEventListener('focus', function() {
+            setTimeout(function() {
+                document.body.classList.remove('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.remove('active');
+            }, 200);
+        });
+
+        // Mobile specific: Detect power button + volume (Android screenshot combo)
+        let powerPressed = false;
+        let volumePressed = false;
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Power' || e.keyCode === 26) {
+                powerPressed = true;
+            }
+            if (e.key === 'VolumeDown' || e.keyCode === 25) {
+                volumePressed = true;
+            }
+            
+            if (powerPressed && volumePressed) {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                
+                setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }, 2000);
+            }
+
+            // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A, Ctrl+P, Ctrl+S
+            if ((e.ctrlKey || e.metaKey) && (
+                e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || 
+                e.key === 'p' || e.key === 's' || e.key === 'C' || e.key === 'X' || 
+                e.key === 'V' || e.key === 'A' || e.key === 'P' || e.key === 'S'
+            )) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Prevent PrintScreen, F12, Developer tools
+            if (e.key === 'PrintScreen' || e.key === 'Print' || e.key === 'F12' || 
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))) {
+                e.preventDefault();
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                
+                setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }, 2000);
+                
+                return false;
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            if (e.key === 'Power' || e.keyCode === 26) powerPressed = false;
+            if (e.key === 'VolumeDown' || e.keyCode === 25) volumePressed = false;
+        });
+
+        // Disable right-click
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
-            alert('Screenshots and copying are not allowed on this page');
             return false;
         });
 
-        // Disable keyboard shortcuts for screenshots and copying
-        document.addEventListener('keydown', function(e) {
-            // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || e.key === 'C' || e.key === 'X' || e.key === 'V' || e.key === 'A')) {
-                e.preventDefault();
-                alert('Copying is not allowed on this page');
-                return false;
-            }
-            
-            // Prevent PrintScreen, Ctrl+P, Cmd+P
-            if (e.key === 'PrintScreen' || e.key === 'Print' || ((e.ctrlKey || e.metaKey) && e.key === 'p')) {
-                e.preventDefault();
-                alert('Screenshots and printing are not allowed on this page');
-                return false;
-            }
-            
-            // Prevent Ctrl+S, Cmd+S (Save)
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                alert('Saving is not allowed on this page');
-                return false;
-            }
-            
-            // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J (Developer tools)
-            if (e.key === 'F12' || 
-                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))) {
-                e.preventDefault();
-                return false;
-            }
+        // Disable selection
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
         });
 
-        // Disable text selection on touch devices
-        document.addEventListener('selectstart', function(e) {
+        // Disable copy
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable cut
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable paste
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener('dragstart', function(e) {
             e.preventDefault();
             return false;
         });
@@ -373,65 +549,42 @@
             }
         }, { passive: false });
 
-        // Detect if user switches to another app (potential screenshot)
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                // User might be taking screenshot
-                console.log('Screenshot attempt detected');
-            }
-        });
-
-        // Prevent drag and drop
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        // Disable copy event
-        document.addEventListener('copy', function(e) {
-            e.preventDefault();
-            alert('Copying is not allowed on this page');
-            return false;
-        });
-
-        // Disable cut event
-        document.addEventListener('cut', function(e) {
-            e.preventDefault();
-            alert('Cutting is not allowed on this page');
-            return false;
-        });
-
-        // Disable paste event
-        document.addEventListener('paste', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        // Prevent screenshot on mobile browsers
-        if (navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-            document.addEventListener('touchstart', function(e) {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            // Add watermark effect
-            setInterval(function() {
-                document.body.style.backgroundImage = 'none';
-            }, 100);
-        }
-
-        // Disable print functionality
+        // Disable print
         window.onbeforeprint = function() {
-            alert('Printing is not allowed on this page');
             return false;
         };
 
-        // Override print function
         window.print = function() {
-            alert('Printing is not allowed on this page');
             return false;
         };
+
+        // Monitor for screenshot apps (Android)
+        setInterval(function() {
+            const now = Date.now();
+            if (now - lastActivity > 100 && document.hidden) {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+            }
+            lastActivity = now;
+        }, 50);
+
+        // Track user activity
+        ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(function(event) {
+            document.addEventListener(event, function() {
+                lastActivity = Date.now();
+            }, true);
+        });
+
+        // Prevent developer tools
+        (function() {
+            const devtools = /./;
+            devtools.toString = function() {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+            };
+            console.log('%c', devtools);
+        })();
+
     </script>
     <div class="container">
         <h1>Our Memories, Nitya</h1>
