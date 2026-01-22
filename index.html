@@ -439,40 +439,88 @@
     </div>
     
     <script>
+        let lastVisibilityChange = 0;
+        let isPopupShowing = false;
+
         // Function to show full-screen popup
         function showScreenshotPopup() {
             const popup = document.getElementById('screenshotPopup');
             popup.classList.add('show');
+            isPopupShowing = true;
+            console.log('Popup shown at:', new Date().toLocaleString());
         }
 
         // Function to close popup
         function closeScreenshotPopup() {
             const popup = document.getElementById('screenshotPopup');
             popup.classList.remove('show');
+            isPopupShowing = false;
         }
 
-        // Detect visibility change (primary mobile screenshot detection)
+        // TEST: Show popup immediately on page load to verify it works
+        setTimeout(function() {
+            // Uncomment next line to test if popup works
+            // showScreenshotPopup();
+        }, 2000);
+
+        // MAIN DETECTION: Visibility change (most reliable for mobile)
         document.addEventListener('visibilitychange', function() {
+            const now = Date.now();
+            console.log('Visibility changed. Hidden:', document.hidden);
+            
             if (document.hidden) {
+                // Prevent multiple triggers
+                if (now - lastVisibilityChange > 500) {
+                    showScreenshotPopup();
+                    lastVisibilityChange = now;
+                }
+            }
+        }, true);
+
+        // Window blur detection (works on some browsers)
+        window.addEventListener('blur', function() {
+            console.log('Window blur detected');
+            if (!isPopupShowing) {
                 showScreenshotPopup();
             }
-        });
+        }, true);
 
-        // Detect window blur (iOS Safari and desktop)
-        window.addEventListener('blur', function() {
-            showScreenshotPopup();
-        });
-
-        // Detect page hide (additional mobile detection)
+        // Page hide detection (mobile browsers)
         window.addEventListener('pagehide', function() {
+            console.log('Page hide detected');
             showScreenshotPopup();
-        });
+        }, true);
 
-        // Detect keyboard shortcuts
+        // Focus loss detection
+        document.addEventListener('blur', function() {
+            console.log('Document blur detected');
+            if (!isPopupShowing) {
+                showScreenshotPopup();
+            }
+        }, true);
+
+        // Keyboard shortcuts detection
         document.addEventListener('keydown', function(e) {
-            // Detect PrintScreen
-            if (e.key === 'PrintScreen' || e.key === 'Print') {
+            // PrintScreen key
+            if (e.key === 'PrintScreen' || e.keyCode === 44 || e.key === 'Print') {
                 e.preventDefault();
+                console.log('PrintScreen detected');
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+Shift+S (Firefox screenshot)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                console.log('Firefox screenshot shortcut detected');
+                showScreenshotPopup();
+                return false;
+            }
+
+            // Prevent Cmd+Shift+4 (Mac screenshot - though this is OS level)
+            if (e.metaKey && e.shiftKey && e.key === '4') {
+                e.preventDefault();
+                console.log('Mac screenshot shortcut detected');
                 showScreenshotPopup();
                 return false;
             }
@@ -489,6 +537,7 @@
             // Prevent Ctrl+P (Print)
             if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
                 e.preventDefault();
+                console.log('Print shortcut detected');
                 showScreenshotPopup();
                 return false;
             }
@@ -496,7 +545,6 @@
             // Prevent Ctrl+S (Save)
             if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault();
-                showScreenshotPopup();
                 return false;
             }
             
@@ -506,16 +554,29 @@
                 e.preventDefault();
                 return false;
             }
-        });
 
-        // Detect rapid key presses (screenshot combo detection)
-        let lastKeyTime = 0;
-        document.addEventListener('keydown', function(e) {
-            const now = Date.now();
-            if (now - lastKeyTime < 200 && now - lastKeyTime > 10) {
-                showScreenshotPopup();
+            // Escape key closes popup
+            if (e.key === 'Escape') {
+                closeScreenshotPopup();
             }
-            lastKeyTime = now;
+        }, true);
+
+        // Detect rapid key combinations (Android screenshot combo)
+        let keyPressCount = 0;
+        let keyPressTimer;
+        document.addEventListener('keydown', function() {
+            keyPressCount++;
+            clearTimeout(keyPressTimer);
+            
+            if (keyPressCount >= 2) {
+                console.log('Multiple keys detected - possible screenshot combo');
+                showScreenshotPopup();
+                keyPressCount = 0;
+            }
+            
+            keyPressTimer = setTimeout(function() {
+                keyPressCount = 0;
+            }, 300);
         });
 
         // Disable right-click
@@ -561,6 +622,7 @@
 
         // Disable print
         window.onbeforeprint = function() {
+            console.log('Print dialog detected');
             showScreenshotPopup();
             return false;
         };
@@ -570,19 +632,30 @@
             return false;
         };
 
-        // Close popup when clicking outside
+        // Close popup when clicking outside or on X button
         document.getElementById('screenshotPopup').addEventListener('click', function(e) {
-            if (e.target.id === 'screenshotPopup') {
+            if (e.target.id === 'screenshotPopup' || e.target.id === 'closePopup') {
                 closeScreenshotPopup();
             }
         });
 
-        // Close popup with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeScreenshotPopup();
-            }
-        });
+        // Mobile-specific: detect when app goes to background
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            console.log('Mobile device detected - enhanced monitoring active');
+            
+            // Additional mobile events
+            document.addEventListener('freeze', function() {
+                console.log('Page freeze detected');
+                showScreenshotPopup();
+            }, true);
+
+            document.addEventListener('resume', function() {
+                console.log('Page resume detected');
+            }, true);
+        }
+
+        // Log to help debug
+        console.log('Screenshot protection loaded. Try taking a screenshot to test.');
 
     </script>
     <div class="container">
