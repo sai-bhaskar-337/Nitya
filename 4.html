@@ -38,21 +38,46 @@
             user-select: none;
         }
         
-        .screenshot-shield {
+        body::before {
+            content: "";
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
-            z-index: 99999;
-            opacity: 0;
+            background: transparent;
+            z-index: 9999;
             pointer-events: none;
-            transition: opacity 0.05s;
+            -webkit-backdrop-filter: blur(0px);
+            backdrop-filter: blur(0px);
+            transition: backdrop-filter 0.1s;
         }
 
-        .screenshot-shield.active {
-            opacity: 1;
+        body.screenshot-detected::before {
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .screenshot-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .screenshot-overlay.active {
+            display: flex;
         }
         
         .secure-content {
@@ -61,6 +86,19 @@
             -ms-user-select: none;
             user-select: none;
             position: relative;
+        }
+
+        .secure-content::after {
+            content: attr(data-watermark);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 3em;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            z-index: 1;
+            white-space: nowrap;
         }
         
         .container {
@@ -344,78 +382,99 @@
     </style>
 </head>
 <body>
-    <div class="screenshot-shield" id="screenshotShield"></div>
+    <div class="screenshot-overlay" id="screenshotOverlay">
+        🚫 Screenshot Blocked<br>
+        <small style="font-size: 0.6em; margin-top: 10px; display: block;">This content is protected</small>
+    </div>
     
     <script>
-        let screenshotShield = document.getElementById('screenshotShield');
-        let isDetecting = false;
+        let isBlurred = false;
+        let blurTimeout;
+        let lastActivity = Date.now();
 
-        // Function to activate shield instantly
-        function activateShield() {
-            if (!isDetecting) {
-                screenshotShield.classList.add('active');
-                isDetecting = true;
+        // Create dynamic watermark with timestamp
+        function createWatermark() {
+            const now = new Date();
+            return `PRIVATE - ${now.toLocaleString()}`;
+        }
+
+        // Apply watermark
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            if (container) {
+                container.classList.add('secure-content');
+                container.setAttribute('data-watermark', createWatermark());
+                
+                // Update watermark every second
+                setInterval(function() {
+                    container.setAttribute('data-watermark', createWatermark());
+                }, 1000);
             }
-        }
+        });
 
-        // Function to deactivate shield after delay
-        function deactivateShield() {
-            setTimeout(function() {
-                screenshotShield.classList.remove('active');
-                isDetecting = false;
-            }, 100);
-        }
-
-        // Detect visibility change (works on most mobile browsers)
+        // Detect visibility change (app switching - common for screenshots)
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
-                // Page is hidden - screenshot attempt likely
-                activateShield();
+                // User switched away - potential screenshot
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                isBlurred = true;
+                
+                console.log('⚠️ Screenshot attempt detected at:', new Date().toLocaleString());
             } else {
-                // Page visible again
-                deactivateShield();
+                // User came back
+                clearTimeout(blurTimeout);
+                blurTimeout = setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                    isBlurred = false;
+                }, 500);
             }
         });
 
-        // Detect window blur (iOS Safari)
+        // Detect page blur (iOS Safari screenshot detection)
         window.addEventListener('blur', function() {
-            activateShield();
+            document.body.classList.add('screenshot-detected');
+            document.getElementById('screenshotOverlay').classList.add('active');
+            
+            setTimeout(function() {
+                if (document.hasFocus()) {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }
+            }, 300);
         });
 
+        // Detect focus return
         window.addEventListener('focus', function() {
-            deactivateShield();
+            setTimeout(function() {
+                document.body.classList.remove('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.remove('active');
+            }, 200);
         });
 
-        // Detect page freeze (Android Chrome)
-        window.addEventListener('freeze', function() {
-            activateShield();
-        }, true);
+        // Mobile specific: Detect power button + volume (Android screenshot combo)
+        let powerPressed = false;
+        let volumePressed = false;
 
-        window.addEventListener('resume', function() {
-            deactivateShield();
-        }, true);
-
-        // Detect for Android power button combinations
-        let lastKeyTime = 0;
         document.addEventListener('keydown', function(e) {
-            const now = Date.now();
-            
-            // If multiple keys pressed within 200ms (screenshot combo)
-            if (now - lastKeyTime < 200) {
-                activateShield();
-                setTimeout(deactivateShield, 300);
+            if (e.key === 'Power' || e.keyCode === 26) {
+                powerPressed = true;
+            }
+            if (e.key === 'VolumeDown' || e.keyCode === 25) {
+                volumePressed = true;
             }
             
-            lastKeyTime = now;
+            if (powerPressed && volumePressed) {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                
+                setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }, 2000);
+            }
 
-            // Detect PrintScreen
-            if (e.key === 'PrintScreen' || e.key === 'Print') {
-                e.preventDefault();
-                activateShield();
-                setTimeout(deactivateShield, 200);
-                return false;
-            }
-            
             // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A, Ctrl+P, Ctrl+S
             if ((e.ctrlKey || e.metaKey) && (
                 e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || 
@@ -426,34 +485,25 @@
                 return false;
             }
             
-            // Prevent F12, Developer tools
-            if (e.key === 'F12' || 
+            // Prevent PrintScreen, F12, Developer tools
+            if (e.key === 'PrintScreen' || e.key === 'Print' || e.key === 'F12' || 
                 ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))) {
                 e.preventDefault();
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+                
+                setTimeout(function() {
+                    document.body.classList.remove('screenshot-detected');
+                    document.getElementById('screenshotOverlay').classList.remove('active');
+                }, 2000);
+                
                 return false;
             }
         });
 
-        // Monitor for task switching on mobile
-        let lastActivity = Date.now();
-        let activityCheck = setInterval(function() {
-            const now = Date.now();
-            // If no activity for more than 100ms and page still has focus, might be screenshot
-            if (now - lastActivity > 100 && !document.hidden) {
-                const timeDiff = now - lastActivity;
-                if (timeDiff > 100 && timeDiff < 500) {
-                    activateShield();
-                    setTimeout(deactivateShield, 200);
-                }
-            }
-            lastActivity = now;
-        }, 50);
-
-        // Track all user activities
-        ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'touchmove', 'click'].forEach(function(event) {
-            document.addEventListener(event, function() {
-                lastActivity = Date.now();
-            }, true);
+        document.addEventListener('keyup', function(e) {
+            if (e.key === 'Power' || e.keyCode === 26) powerPressed = false;
+            if (e.key === 'VolumeDown' || e.keyCode === 25) volumePressed = false;
         });
 
         // Disable right-click
@@ -468,17 +518,19 @@
             return false;
         });
 
-        // Disable copy/cut/paste
+        // Disable copy
         document.addEventListener('copy', function(e) {
             e.preventDefault();
             return false;
         });
 
+        // Disable cut
         document.addEventListener('cut', function(e) {
             e.preventDefault();
             return false;
         });
 
+        // Disable paste
         document.addEventListener('paste', function(e) {
             e.preventDefault();
             return false;
@@ -491,28 +543,14 @@
         });
 
         // Prevent long press on mobile
-        let longPressTimer;
         document.addEventListener('touchstart', function(e) {
-            longPressTimer = setTimeout(function() {
-                e.preventDefault();
-            }, 500);
-            
             if (e.touches.length > 1) {
                 e.preventDefault();
             }
         }, { passive: false });
 
-        document.addEventListener('touchend', function() {
-            clearTimeout(longPressTimer);
-        });
-
-        document.addEventListener('touchmove', function() {
-            clearTimeout(longPressTimer);
-        });
-
         // Disable print
         window.onbeforeprint = function() {
-            activateShield();
             return false;
         };
 
@@ -520,17 +558,32 @@
             return false;
         };
 
-        // Additional mobile browser detection
-        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            // For mobile devices, add extra monitoring
-            document.addEventListener('pagehide', function() {
-                activateShield();
-            });
+        // Monitor for screenshot apps (Android)
+        setInterval(function() {
+            const now = Date.now();
+            if (now - lastActivity > 100 && document.hidden) {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+            }
+            lastActivity = now;
+        }, 50);
 
-            document.addEventListener('pageshow', function() {
-                deactivateShield();
-            });
-        }
+        // Track user activity
+        ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(function(event) {
+            document.addEventListener(event, function() {
+                lastActivity = Date.now();
+            }, true);
+        });
+
+        // Prevent developer tools
+        (function() {
+            const devtools = /./;
+            devtools.toString = function() {
+                document.body.classList.add('screenshot-detected');
+                document.getElementById('screenshotOverlay').classList.add('active');
+            };
+            console.log('%c', devtools);
+        })();
 
     </script>
     <div class="container">
