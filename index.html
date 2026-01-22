@@ -40,37 +40,99 @@
         
         .screenshot-popup {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 30px 40px;
-            border-radius: 15px;
-            z-index: 99999;
-            display: none;
-            text-align: center;
-            font-size: 1.2em;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-
-        .screenshot-popup.show {
-            display: block;
-        }
-
-        .screenshot-popup-backdrop {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 99998;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 99999;
             display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
         }
 
-        .screenshot-popup-backdrop.show {
-            display: block;
+        .screenshot-popup.show {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popupBounce 0.3s ease-out;
+        }
+
+        @keyframes popupBounce {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: #ff4757;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: #ff3838;
+            transform: rotate(90deg);
+        }
+
+        .close-btn:active {
+            transform: scale(0.9) rotate(90deg);
+        }
+
+        .popup-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            font-size: 1.8em;
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .screenshot-popup-backdrop {
+            display: none;
         }
         
         .secure-content {
@@ -362,41 +424,47 @@
     </style>
 </head>
 <body>
-    <div class="screenshot-popup-backdrop" id="popupBackdrop"></div>
     <div class="screenshot-popup" id="screenshotPopup">
-        🚫 Screenshots are not allowed!
+        <div class="popup-content">
+            <button class="close-btn" id="closePopup" onclick="closeScreenshotPopup()">✕</button>
+            <div class="popup-icon">🚫</div>
+            <div class="popup-title">Screenshots Can't Be Taken!</div>
+            <div class="popup-message">
+                This content is protected and screenshots are not allowed.
+            </div>
+            <div class="popup-message" style="font-size: 0.9em; color: #999; margin-top: 10px;">
+                Please respect the privacy of this page.
+            </div>
+        </div>
     </div>
     
     <script>
-        let popupTimeout;
-
-        // Function to show popup
+        // Function to show full-screen popup
         function showScreenshotPopup() {
             const popup = document.getElementById('screenshotPopup');
-            const backdrop = document.getElementById('popupBackdrop');
-            
             popup.classList.add('show');
-            backdrop.classList.add('show');
-
-            // Clear existing timeout
-            clearTimeout(popupTimeout);
-
-            // Hide popup after 2 seconds
-            popupTimeout = setTimeout(function() {
-                popup.classList.remove('show');
-                backdrop.classList.remove('show');
-            }, 2000);
         }
 
-        // Detect visibility change (mobile screenshot detection)
+        // Function to close popup
+        function closeScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            popup.classList.remove('show');
+        }
+
+        // Detect visibility change (primary mobile screenshot detection)
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 showScreenshotPopup();
             }
         });
 
-        // Detect window blur (iOS Safari)
+        // Detect window blur (iOS Safari and desktop)
         window.addEventListener('blur', function() {
+            showScreenshotPopup();
+        });
+
+        // Detect page hide (additional mobile detection)
+        window.addEventListener('pagehide', function() {
             showScreenshotPopup();
         });
 
@@ -428,6 +496,7 @@
             // Prevent Ctrl+S (Save)
             if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault();
+                showScreenshotPopup();
                 return false;
             }
             
@@ -437,6 +506,16 @@
                 e.preventDefault();
                 return false;
             }
+        });
+
+        // Detect rapid key presses (screenshot combo detection)
+        let lastKeyTime = 0;
+        document.addEventListener('keydown', function(e) {
+            const now = Date.now();
+            if (now - lastKeyTime < 200 && now - lastKeyTime > 10) {
+                showScreenshotPopup();
+            }
+            lastKeyTime = now;
         });
 
         // Disable right-click
@@ -474,7 +553,6 @@
         });
 
         // Prevent long press on mobile
-        let longPressTimer;
         document.addEventListener('touchstart', function(e) {
             if (e.touches.length > 1) {
                 e.preventDefault();
@@ -492,12 +570,19 @@
             return false;
         };
 
-        // Additional mobile detection
-        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            document.addEventListener('pagehide', function() {
-                showScreenshotPopup();
-            });
-        }
+        // Close popup when clicking outside
+        document.getElementById('screenshotPopup').addEventListener('click', function(e) {
+            if (e.target.id === 'screenshotPopup') {
+                closeScreenshotPopup();
+            }
+        });
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeScreenshotPopup();
+            }
+        });
 
     </script>
     <div class="container">
@@ -525,7 +610,7 @@
         <div class="video-container">
             <h3>🎬 A special memory just for you</h3>
             <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/dtKVzsvd8ME" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <iframe src="https://www.youtube.com/embed/dtKVzsvd8ME?autoplay=0&rel=0&modestbranding=1" title="Special Memory" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
         </div>
         
