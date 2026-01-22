@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="screenshot" content="disabled">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://www.youtube.com https://cdnjs.cloudflare.com; frame-ancestors 'none';">
+    <title>Our Memories, Nitya</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        @media print {
+            body {
+                display: none !important;
+            }
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .screenshot-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 99999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .screenshot-popup.show {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popupBounce 0.3s ease-out;
+        }
+
+        @keyframes popupBounce {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: #ff4757;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: #ff3838;
+            transform: rotate(90deg);
+        }
+
+        .close-btn:active {
+            transform: scale(0.9) rotate(90deg);
+        }
+
+        .popup-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            font-size: 1.8em;
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .screenshot-popup-backdrop {
+            display: none;
+        }
+        
+        .secure-content {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: relative;
+        }
+        
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            padding: 20px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            word-wrap: break-word;
+        }
+        
+        .date {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.3em;
+            flex-wrap: wrap;
+        }
+        
+        h3 {
+            color: #667eea;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+            flex-wrap: wrap;
+        }
+        
+        p {
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+        
+        .video-container {
+            margin: 15px 0;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 177.78%; /* 9:16 for vertical shorts */
+            height: 0;
+            overflow: hidden;
+            margin-top: 12px;
+            background: #000;
+            border-radius: 10px;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .wishes-section {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+        }
+        
+        .wishes-section p {
+            color: #2d3436;
+        }
+        
+        .signature {
+            text-align: right;
+            margin-top: 15px;
+            font-style: italic;
+            color: #2d3436;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-bottom: 20px;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .milk-memory {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .milk-memory p {
+            color: #2d3436;
+        }
+
+        /* Small phones: 3-4 inches (320px-375px) */
+        @media (min-width: 320px) and (max-width: 374px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            h2 {
+                font-size: 1.15em;
+            }
+            h3 {
+                font-size: 1em;
+            }
+            p {
+                font-size: 0.9em;
+            }
+        }
+
+        /* Medium phones: 4-5 inches (375px-480px) */
+        @media (min-width: 375px) and (max-width: 479px) {
+            .container {
+                padding: 18px;
+            }
+            h1 {
+                font-size: 1.7em;
+            }
+        }
+
+        /* Large phones: 5-6 inches (480px-640px) */
+        @media (min-width: 480px) and (max-width: 639px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.9em;
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+        }
+
+        /* Extra large phones: 6+ inches (640px-768px) */
+        @media (min-width: 640px) and (max-width: 767px) {
+            .container {
+                padding: 25px;
+            }
+            h1 {
+                font-size: 2.1em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            .video-wrapper {
+                padding-bottom: 120%;
+            }
+        }
+
+        /* Tablets (768px-1024px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .container {
+                padding: 30px 40px;
+            }
+            h1 {
+                font-size: 2.3em;
+            }
+            h2 {
+                font-size: 1.6em;
+            }
+            h3 {
+                font-size: 1.2em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .video-wrapper {
+                padding-bottom: 56.25%; /* 16:9 for tablets */
+                max-width: 90%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        /* Small laptops (1024px-1366px) */
+        @media (min-width: 1024px) and (max-width: 1365px) {
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 40px 50px;
+                border-radius: 0;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            h2 {
+                font-size: 1.7em;
+            }
+            .video-wrapper {
+                padding-bottom: 56.25%;
+                max-width: 700px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        /* Large laptops and desktops (1366px+) */
+        @media (min-width: 1366px) {
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 50px 60px;
+                border-radius: 0;
+            }
+            h1 {
+                font-size: 2.8em;
+            }
+            h2 {
+                font-size: 1.8em;
+                margin-top: 30px;
+            }
+            h3 {
+                font-size: 1.3em;
+            }
+            p {
+                font-size: 1.05em;
+                line-height: 1.8;
+            }
+            .video-wrapper {
+                padding-bottom: 56.25%;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .wishes-section {
+                padding: 30px;
+            }
+            .milk-memory {
+                padding: 25px;
+            }
+        }
+
+        /* Extra wide screens (1920px+) */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1200px;
+                padding: 60px 80px;
+            }
+            h1 {
+                font-size: 3em;
+            }
+            .video-wrapper {
+                max-width: 900px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="screenshot-popup" id="screenshotPopup">
+        <div class="popup-content">
+            <button class="close-btn" id="closePopup" onclick="closeScreenshotPopup()">✕</button>
+            <div class="popup-icon">🚫</div>
+            <div class="popup-title">Screenshots Can't Be Taken!</div>
+            <div class="popup-message">
+                This content is protected and screenshots are not allowed.
+            </div>
+            <div class="popup-message" style="font-size: 0.9em; color: #999; margin-top: 10px;">
+                Please respect the privacy of this page.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let lastVisibilityChange = 0;
+        let isPopupShowing = false;
+
+        // Function to show full-screen popup
+        function showScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            popup.classList.add('show');
+            isPopupShowing = true;
+            console.log('Popup shown at:', new Date().toLocaleString());
+        }
+
+        // Function to close popup
+        function closeScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            popup.classList.remove('show');
+            isPopupShowing = false;
+        }
+
+        // TEST: Show popup immediately on page load to verify it works
+        setTimeout(function() {
+            // Uncomment next line to test if popup works
+            // showScreenshotPopup();
+        }, 2000);
+
+        // MAIN DETECTION: Visibility change (most reliable for mobile)
+        document.addEventListener('visibilitychange', function() {
+            const now = Date.now();
+            console.log('Visibility changed. Hidden:', document.hidden);
+            
+            if (document.hidden) {
+                // Prevent multiple triggers
+                if (now - lastVisibilityChange > 500) {
+                    showScreenshotPopup();
+                    lastVisibilityChange = now;
+                }
+            }
+        }, true);
+
+        // Window blur detection (works on some browsers)
+        window.addEventListener('blur', function() {
+            console.log('Window blur detected');
+            if (!isPopupShowing) {
+                showScreenshotPopup();
+            }
+        }, true);
+
+        // Page hide detection (mobile browsers)
+        window.addEventListener('pagehide', function() {
+            console.log('Page hide detected');
+            showScreenshotPopup();
+        }, true);
+
+        // Focus loss detection
+        document.addEventListener('blur', function() {
+            console.log('Document blur detected');
+            if (!isPopupShowing) {
+                showScreenshotPopup();
+            }
+        }, true);
+
+        // Keyboard shortcuts detection
+        document.addEventListener('keydown', function(e) {
+            // PrintScreen key
+            if (e.key === 'PrintScreen' || e.keyCode === 44 || e.key === 'Print') {
+                e.preventDefault();
+                console.log('PrintScreen detected');
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+Shift+S (Firefox screenshot)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                console.log('Firefox screenshot shortcut detected');
+                showScreenshotPopup();
+                return false;
+            }
+
+            // Prevent Cmd+Shift+4 (Mac screenshot - though this is OS level)
+            if (e.metaKey && e.shiftKey && e.key === '4') {
+                e.preventDefault();
+                console.log('Mac screenshot shortcut detected');
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A
+            if ((e.ctrlKey || e.metaKey) && (
+                e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || 
+                e.key === 'C' || e.key === 'X' || e.key === 'V' || e.key === 'A'
+            )) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Prevent Ctrl+P (Print)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                console.log('Print shortcut detected');
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Prevent F12, Developer tools
+            if (e.key === 'F12' || 
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Escape key closes popup
+            if (e.key === 'Escape') {
+                closeScreenshotPopup();
+            }
+        }, true);
+
+        // Detect rapid key combinations (Android screenshot combo)
+        let keyPressCount = 0;
+        let keyPressTimer;
+        document.addEventListener('keydown', function() {
+            keyPressCount++;
+            clearTimeout(keyPressTimer);
+            
+            if (keyPressCount >= 2) {
+                console.log('Multiple keys detected - possible screenshot combo');
+                showScreenshotPopup();
+                keyPressCount = 0;
+            }
+            
+            keyPressTimer = setTimeout(function() {
+                keyPressCount = 0;
+            }, 300);
+        });
+
+        // Disable right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable selection
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable copy/cut/paste
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Prevent long press on mobile
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Disable print
+        window.onbeforeprint = function() {
+            console.log('Print dialog detected');
+            showScreenshotPopup();
+            return false;
+        };
+
+        window.print = function() {
+            showScreenshotPopup();
+            return false;
+        };
+
+        // Close popup when clicking outside or on X button
+        document.getElementById('screenshotPopup').addEventListener('click', function(e) {
+            if (e.target.id === 'screenshotPopup' || e.target.id === 'closePopup') {
+                closeScreenshotPopup();
+            }
+        });
+
+        // Mobile-specific: detect when app goes to background
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            console.log('Mobile device detected - enhanced monitoring active');
+            
+            // Additional mobile events
+            document.addEventListener('freeze', function() {
+                console.log('Page freeze detected');
+                showScreenshotPopup();
+            }, true);
+
+            document.addEventListener('resume', function() {
+                console.log('Page resume detected');
+            }, true);
+        }
+
+        // Log to help debug
+        console.log('Screenshot protection loaded. Try taking a screenshot to test.');
+
+    </script>
+    <div class="container">
+        <h1>Our Memories, Nitya</h1>
+        <div class="date">January 21st 💕</div>
+        
+        <h2>✨ Beautiful Memories</h2>
+        
+        <h3>💫 Cherished Moments</h3>
+        <p>Every conversation, every laugh, every moment we shared together</p>
+        
+        <h3>🌟 Special Times</h3>
+        <p>The memories that made ordinary days feel extraordinary</p>
+        
+        <h3>💝 Grateful Heart</h3>
+        <p>Thank you for all the beautiful memories we created</p>
+
+        <div class="milk-memory">
+            <h3>🥛 Sweet Buffalo Milk Memory</h3>
+            <p>I received buffalo 1/4 litre milk and it brought me health and beautiful memories. Each sip reminded me of warmth, care, and the simple joys we share.</p>
+            <p>I want buffalo milk 1 litre to have healthy energy, and I am expecting to get it soon - full of memories, full of love, and full of the goodness we both cherish together.</p>
+        </div>
+        
+        <h2>🎥 Special Moment for You</h2>
+        <div class="video-container">
+            <h3>🎬 A special memory just for you</h3>
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/dtKVzsvd8ME?autoplay=0&rel=0&modestbranding=1" title="Special Memory" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+        </div>
+        
+        <div class="wishes-section">
+            <h2>🎉 Special Wishes</h2>
+            <p>On this special day, I wish you all the happiness in the world.</p>
+            <p>May your path be filled with success, joy, and beautiful new beginnings.</p>
+            <p>Thank you for the memories we created together.</p>
+            <p>You deserve all the wonderful things life has to offer.</p>
+            <p><strong>Happy Memories Day, Nitya! 🎊</strong></p>
+            <div class="signature">With warm wishes 💝</div>
+        </div>
+        
+        <div class="footer">Made with love for Nitya ❤️</div>
+    </div>
+</body>
+</html>
