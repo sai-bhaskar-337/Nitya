@@ -38,21 +38,39 @@
             user-select: none;
         }
         
-        .screenshot-shield {
+        .screenshot-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            z-index: 99999;
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .screenshot-popup.show {
+            display: block;
+        }
+
+        .screenshot-popup-backdrop {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
-            z-index: 99999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.05s;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99998;
+            display: none;
         }
 
-        .screenshot-shield.active {
-            opacity: 1;
+        .screenshot-popup-backdrop.show {
+            display: block;
         }
         
         .secure-content {
@@ -344,84 +362,71 @@
     </style>
 </head>
 <body>
-    <div class="screenshot-shield" id="screenshotShield"></div>
+    <div class="screenshot-popup-backdrop" id="popupBackdrop"></div>
+    <div class="screenshot-popup" id="screenshotPopup">
+        🚫 Screenshots are not allowed!
+    </div>
     
     <script>
-        let screenshotShield = document.getElementById('screenshotShield');
-        let isDetecting = false;
+        let popupTimeout;
 
-        // Function to activate shield instantly
-        function activateShield() {
-            if (!isDetecting) {
-                screenshotShield.classList.add('active');
-                isDetecting = true;
-            }
+        // Function to show popup
+        function showScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            const backdrop = document.getElementById('popupBackdrop');
+            
+            popup.classList.add('show');
+            backdrop.classList.add('show');
+
+            // Clear existing timeout
+            clearTimeout(popupTimeout);
+
+            // Hide popup after 2 seconds
+            popupTimeout = setTimeout(function() {
+                popup.classList.remove('show');
+                backdrop.classList.remove('show');
+            }, 2000);
         }
 
-        // Function to deactivate shield after delay
-        function deactivateShield() {
-            setTimeout(function() {
-                screenshotShield.classList.remove('active');
-                isDetecting = false;
-            }, 100);
-        }
-
-        // Detect visibility change (works on most mobile browsers)
+        // Detect visibility change (mobile screenshot detection)
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
-                // Page is hidden - screenshot attempt likely
-                activateShield();
-            } else {
-                // Page visible again
-                deactivateShield();
+                showScreenshotPopup();
             }
         });
 
         // Detect window blur (iOS Safari)
         window.addEventListener('blur', function() {
-            activateShield();
+            showScreenshotPopup();
         });
 
-        window.addEventListener('focus', function() {
-            deactivateShield();
-        });
-
-        // Detect page freeze (Android Chrome)
-        window.addEventListener('freeze', function() {
-            activateShield();
-        }, true);
-
-        window.addEventListener('resume', function() {
-            deactivateShield();
-        }, true);
-
-        // Detect for Android power button combinations
-        let lastKeyTime = 0;
+        // Detect keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            const now = Date.now();
-            
-            // If multiple keys pressed within 200ms (screenshot combo)
-            if (now - lastKeyTime < 200) {
-                activateShield();
-                setTimeout(deactivateShield, 300);
-            }
-            
-            lastKeyTime = now;
-
             // Detect PrintScreen
             if (e.key === 'PrintScreen' || e.key === 'Print') {
                 e.preventDefault();
-                activateShield();
-                setTimeout(deactivateShield, 200);
+                showScreenshotPopup();
                 return false;
             }
             
-            // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A, Ctrl+P, Ctrl+S
+            // Prevent Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A
             if ((e.ctrlKey || e.metaKey) && (
                 e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || 
-                e.key === 'p' || e.key === 's' || e.key === 'C' || e.key === 'X' || 
-                e.key === 'V' || e.key === 'A' || e.key === 'P' || e.key === 'S'
+                e.key === 'C' || e.key === 'X' || e.key === 'V' || e.key === 'A'
             )) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Prevent Ctrl+P (Print)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault();
                 return false;
             }
@@ -432,28 +437,6 @@
                 e.preventDefault();
                 return false;
             }
-        });
-
-        // Monitor for task switching on mobile
-        let lastActivity = Date.now();
-        let activityCheck = setInterval(function() {
-            const now = Date.now();
-            // If no activity for more than 100ms and page still has focus, might be screenshot
-            if (now - lastActivity > 100 && !document.hidden) {
-                const timeDiff = now - lastActivity;
-                if (timeDiff > 100 && timeDiff < 500) {
-                    activateShield();
-                    setTimeout(deactivateShield, 200);
-                }
-            }
-            lastActivity = now;
-        }, 50);
-
-        // Track all user activities
-        ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'touchmove', 'click'].forEach(function(event) {
-            document.addEventListener(event, function() {
-                lastActivity = Date.now();
-            }, true);
         });
 
         // Disable right-click
@@ -493,42 +476,26 @@
         // Prevent long press on mobile
         let longPressTimer;
         document.addEventListener('touchstart', function(e) {
-            longPressTimer = setTimeout(function() {
-                e.preventDefault();
-            }, 500);
-            
             if (e.touches.length > 1) {
                 e.preventDefault();
             }
         }, { passive: false });
 
-        document.addEventListener('touchend', function() {
-            clearTimeout(longPressTimer);
-        });
-
-        document.addEventListener('touchmove', function() {
-            clearTimeout(longPressTimer);
-        });
-
         // Disable print
         window.onbeforeprint = function() {
-            activateShield();
+            showScreenshotPopup();
             return false;
         };
 
         window.print = function() {
+            showScreenshotPopup();
             return false;
         };
 
-        // Additional mobile browser detection
+        // Additional mobile detection
         if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            // For mobile devices, add extra monitoring
             document.addEventListener('pagehide', function() {
-                activateShield();
-            });
-
-            document.addEventListener('pageshow', function() {
-                deactivateShield();
+                showScreenshotPopup();
             });
         }
 
