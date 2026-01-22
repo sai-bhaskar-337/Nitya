@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Screenshot Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .test-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .test-info {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .test-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .test-info ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .sensitive-content {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .status.active {
+            background: #00b894;
+            color: white;
+        }
+
+        /* Full-screen popup */
+        .screenshot-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            z-index: 999999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .screenshot-popup.show {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: popupBounce 0.4s ease-out;
+        }
+
+        @keyframes popupBounce {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            font-size: 2em;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            font-size: 1.2em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #ee5a6f;
+            transform: scale(1.05);
+        }
+
+        .close-btn:active {
+            transform: scale(0.95);
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Screenshot Prevention Popup -->
+    <div class="screenshot-popup" id="screenshotPopup">
+        <div class="popup-content">
+            <div class="popup-icon">🚫</div>
+            <div class="popup-title">Screenshots Not Allowed!</div>
+            <div class="popup-message">
+                This page is protected.<br>
+                Screenshots cannot be taken.
+            </div>
+            <button class="close-btn" onclick="closePopup()">OK, I Understand</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="test-container">
+        <h1>🔒 Screenshot Prevention Test</h1>
+        
+        <div class="status active">
+            ✅ Protection Active
+        </div>
+
+        <div class="sensitive-content">
+            🔐 SENSITIVE CONTENT 🔐<br>
+            This is protected information
+        </div>
+
+        <div class="test-info">
+            <h3>📋 How to Test:</h3>
+            <ul>
+                <li><strong>Mobile:</strong> Press Power + Volume Down</li>
+                <li><strong>Desktop:</strong> Press PrintScreen or Ctrl+P</li>
+                <li><strong>Mac:</strong> Press Cmd+Shift+3 or Cmd+Shift+4</li>
+            </ul>
+        </div>
+
+        <div class="test-info">
+            <h3>🛡️ What Should Happen:</h3>
+            <ul>
+                <li>A full-screen popup should appear</li>
+                <li>The popup message will cover all content</li>
+                <li>Your screenshot will capture the warning, not the content</li>
+            </ul>
+        </div>
+
+        <div class="test-info">
+            <h3>📱 Detection Methods:</h3>
+            <ul>
+                <li>Visibility change detection</li>
+                <li>Window blur detection</li>
+                <li>Keyboard shortcut prevention</li>
+                <li>Print prevention</li>
+                <li>Copy/paste blocking</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+<<<<<<< HEAD
+        let detectionCount = 0;
+
+        function showPopup() {
+            detectionCount++;
+            console.log(`Screenshot attempt #${detectionCount} detected at:`, new Date().toLocaleString());
+            document.getElementById('screenshotPopup').classList.add('show');
+        }
+
+        function closePopup() {
+            console.log('Popup closed by user');
+            document.getElementById('screenshotPopup').classList.remove('show');
+        }
+
+        // Visibility change (primary mobile detection)
+        document.addEventListener('visibilitychange', function() {
+            console.log('Visibility changed. Hidden:', document.hidden);
+            if (document.hidden) {
+                showPopup();
+            }
+        });
+
+        // Window blur (desktop and iOS)
+        window.addEventListener('blur', function() {
+            console.log('Window blur detected');
+            showPopup();
+        });
+
+        // Page hide (mobile browsers)
+        window.addEventListener('pagehide', function() {
+            console.log('Page hide detected');
+            showPopup();
+        });
+
+        // Keyboard detection
+        document.addEventListener('keydown', function(e) {
+            console.log('Key pressed:', e.key, 'Ctrl:', e.ctrlKey, 'Cmd:', e.metaKey, 'Shift:', e.shiftKey);
+
+            // PrintScreen
+            if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                e.preventDefault();
+                console.log('PrintScreen detected!');
+                showPopup();
+                return false;
+            }
+
+            // Ctrl+P (Print)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                console.log('Print shortcut detected!');
+                showPopup();
+=======
+        // Function to show full-screen popup
+        function showScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            popup.classList.add('show');
+        }
+
+        // Function to close popup
+        function closeScreenshotPopup() {
+            const popup = document.getElementById('screenshotPopup');
+            popup.classList.remove('show');
+        }
+
+        // Detect visibility change (primary mobile screenshot detection)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                showScreenshotPopup();
+            }
+        });
+
+        // Detect window blur (iOS Safari and desktop)
+        window.addEventListener('blur', function() {
+            showScreenshotPopup();
+        });
+
+        // Detect page hide (additional mobile detection)
+        window.addEventListener('pagehide', function() {
+            showScreenshotPopup();
+        });
+
+        // Detect keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Detect PrintScreen
+            if (e.key === 'PrintScreen' || e.key === 'Print') {
+                e.preventDefault();
+                showScreenshotPopup();
+>>>>>>> parent of 3c12ef8 (updated with screenshot popup checking)
+                return false;
+            }
+
+            // Ctrl+Shift+S (Firefox screenshot)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 's') {
+                e.preventDefault();
+                console.log('Firefox screenshot detected!');
+                showPopup();
+                return false;
+            }
+
+            // Cmd+Shift+3/4 (Mac screenshot)
+            if (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4')) {
+                e.preventDefault();
+                console.log('Mac screenshot detected!');
+                showPopup();
+                return false;
+            }
+
+            // Block copy/cut/save
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 's' || e.key === 'a')) {
+                e.preventDefault();
+                return false;
+            }
+
+<<<<<<< HEAD
+            // Block developer tools
+            if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'i' || e.key === 'j' || e.key === 'c'))) {
+=======
+            // Prevent Ctrl+P (Print)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                showScreenshotPopup();
+                return false;
+            }
+            
+            // Prevent Ctrl+S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+>>>>>>> parent of 3c12ef8 (updated with screenshot popup checking)
+                e.preventDefault();
+                showScreenshotPopup();
+                return false;
+            }
+<<<<<<< HEAD
+=======
+            
+            // Prevent F12, Developer tools
+            if (e.key === 'F12' || 
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Detect rapid key presses (screenshot combo detection)
+        let lastKeyTime = 0;
+        document.addEventListener('keydown', function(e) {
+            const now = Date.now();
+            if (now - lastKeyTime < 200 && now - lastKeyTime > 10) {
+                showScreenshotPopup();
+            }
+            lastKeyTime = now;
+>>>>>>> parent of 3c12ef8 (updated with screenshot popup checking)
+        });
+
+        // Disable right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable selection
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable copy/cut/paste
+        ['copy', 'cut', 'paste'].forEach(function(event) {
+            document.addEventListener(event, function(e) {
+                e.preventDefault();
+                return false;
+            });
+        });
+
+        // Disable drag
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable print
+        window.onbeforeprint = function() {
+<<<<<<< HEAD
+            showPopup();
+            return false;
+        };
+
+        // Console info
+        console.log('='.repeat(50));
+        console.log('SCREENSHOT PROTECTION TEST PAGE');
+        console.log('='.repeat(50));
+        console.log('Try taking a screenshot now!');
+        console.log('Methods to test:');
+        console.log('- Mobile: Power + Volume Down');
+        console.log('- Desktop: PrintScreen, Ctrl+P');
+        console.log('- Mac: Cmd+Shift+3 or Cmd+Shift+4');
+        console.log('='.repeat(50));
+=======
+            showScreenshotPopup();
+            return false;
+        };
+
+        window.print = function() {
+            showScreenshotPopup();
+            return false;
+        };
+
+        // Close popup when clicking outside
+        document.getElementById('screenshotPopup').addEventListener('click', function(e) {
+            if (e.target.id === 'screenshotPopup') {
+                closeScreenshotPopup();
+            }
+        });
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeScreenshotPopup();
+            }
+        });
+
+>>>>>>> parent of 3c12ef8 (updated with screenshot popup checking)
+    </script>
+</body>
+</html>
